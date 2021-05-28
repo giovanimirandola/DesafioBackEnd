@@ -11,7 +11,7 @@ namespace DesafioPaschoalottoBackEnd.Controllers
     public class CharacterController : ApiController
     {
         [HttpGet]
-        public int GetCharacters()
+        public string GetCharacters()
         {
             string url = "http://gateway.marvel.com//v1/public/characters?ts=1&apikey=473da253b3977826288936c4a61c0991&hash=8be15a064f1557728066139e0619aaf6";
 
@@ -19,7 +19,9 @@ namespace DesafioPaschoalottoBackEnd.Controllers
             var request = new RestRequest(Method.GET);
             IRestResponse response = client.Execute(request);
 
-            if (response.IsSuccessful)
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                return "Ocorreu um erro na execução.";
+            else
             {
                 Root root = new JsonDeserializer().Deserialize<Root>(response);
 
@@ -28,23 +30,15 @@ namespace DesafioPaschoalottoBackEnd.Controllers
                 writeTXT(txt, root);
                 txt.Close();
 
-                return 1;
+                return "Arquivo 'personagensmarvel.txt' criado com sucesso!";
             }
-            else
-                return 0;
         }
 
         private void writeTXT(StreamWriter txt, Root data)
         {
-            int aux = 0;
-
             foreach (Result result in data.data.results)
             {
-                if (aux == 0)
-                    txt.WriteLine("ID: " + result.id);
-                else
-                    txt.WriteLine("\nID: " + result.id);
-
+                txt.WriteLine("ID: " + result.id);
                 txt.WriteLine("Name: " + result.name);
                 txt.WriteLine("Description: " + result.description);
                 txt.WriteLine("Comics:");
@@ -70,8 +64,7 @@ namespace DesafioPaschoalottoBackEnd.Controllers
                 {
                     txt.WriteLine("\t- " + comics.name);
                 }
-
-                aux++;
+                txt.WriteLine("");
             }
         }
     }
